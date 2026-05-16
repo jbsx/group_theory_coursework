@@ -1,6 +1,9 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath, amssymb}
+\usepackage[style=numeric, backend=biber]{biblatex}
+\addbibresource{references.bib}  % your .bib file
+
 \usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
 
 \title{Number and Group Theory\\\textbf{TC50331E}\\Algebraic Coding Theory}
@@ -63,10 +66,10 @@ length 4, i.e. any element in \textbf{B}(4) = \{0000, 0001, 0010, 0011, 0100, 01
 
 %-----------------------------  1 (c & d)  -----------------------------
 
-To systematically generate code words in a block code, we use a \textit{generator matrix}. 
-A generator matrix for an (n, k) block code C is a \(k \times n\) matrix G whose rows form 
-a basis for C, i.e. are linearly independent. For instance, the generator matrix G, for a (5, 2)
-block code \(C = \{(0,0,0,0,0), (1,0,1,1,0), (0,1,1,0,1), (1,1,0,1,1)\}\) is 
+To systematically generate code words in a block code, we use a \textit{generator matrix} 
+\parencite{berlekamp1972survey}. A generator matrix for an (n, k) block code C is a \(k \times n\)
+matrix G whose rows form a basis for C, i.e. are linearly independent. For instance, the generator
+matrix G, for a (5, 2) block code \(C = \{(0,0,0,0,0), (1,0,1,1,0), (0,1,1,0,1), (1,1,0,1,1)\}\) is 
 \[G = \begin{bmatrix} 
     1 & 0 & 1 & 1 & 0 \\
     0 & 1 & 1 & 0 & 1 \\
@@ -115,19 +118,14 @@ The \textit{distance} D, between two binary strings, \(x , y \in \mathbf{B}(n)\)
 sum in \(\mathbb{Z}_2\), i.e., 
 \[D(x, y) = w(x \oplus y)\]
 In other words, the distance is the number of positions where the two strings differ.
-The distance defines a metric on \textbf{B}(n). Formally, a metric defined on a set is a function such 
-that it follows
+The distance defines a metric \cite{hamming1950error} on \textbf{B}(n). Formally, a metric defined on a set 
+is a function such that it follows
 \begin{itemize}
 \item Non-degeneracy: \(d(x, y) = 0 \iff x = y\)
 \item Symmetry: \(d(x, y) = d(y, x)\)
 \item Triangle inequality: \(d(x, z) \leq d(x, y) + d(y, z)\)
 \end{itemize}
 It is straightforward to verify that \(D\) satisfies each of these.
-%Non-degeneracy holds since 
-%\(x \oplus y = 0\) if and only if \(x = y\). Symmetry follows immediately from the commutativity 
-%of \(\oplus\). The triangle inequality, which states that flipping bits from \(x\) to \(z\) takes
-%no more steps than going via an intermediate string \(y\), is a consequence of the subadditivity
-%of weight: \(w(a \oplus b) \leq w(a) + w(b)\) for all \(a, b \in \mathbf{B}(n)\). 
 \begin{itemize}
     \item Non-degeneracy: \(D(x,y) = w(x \oplus y) = 0\) if and only if \(x \oplus y = 0\), which holds 
         if and only if \(x_i = y_i\) for all \(i\), i.e. \(x = y\).
@@ -165,8 +163,8 @@ Therefore, for there to be a unique valid code word for R, R must not be equidis
 words. Conversely, R must be at most \(\lfloor\frac{d_\text{min} - 1}{2}\rfloor\) from a valid code word.
 Therefore, a code with minimum distance \(d_\text{min}\) can correct at most 
 \(\lfloor\frac{d_\text{min} - 1}{2}\rfloor\) errors, since any R within that radius is guaranteed to be 
-closer to exactly one valid code word than any other. In other words, \(d_\text{min} \geq 2t + 1\), where 
-\(t\) is the number of errors the block code can correct.
+closer to exactly one valid code word than any other. In other words, \(d_\text{min} \geq 2t + 1\)
+\cite{bose1960class}, where \(t\) is the number of errors the block code can correct.
 
 %-----------------------------  2 (b)  -----------------------------
 Let G be a block code described by
@@ -238,6 +236,26 @@ columns of \(H\) are distinct and non-zero, we can recover \(\hat{e}\) directly 
 the lookup into our precomputed coset table trivial.
 
 \section{Emperical Investigation}
-TODO
+We systematically vary n and k for a block code to observe the followig: 
+To effieciently utilize block codes for transmission, we must have optimal values n and k such that we
+maximise error-control capabilities whilst minimizing 
+
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{cccc}
+    \hline
+    n & k & \(d_\text{min}\) & code rate \\
+    \hline
+    Row 1    & 42       & 3.14     & 0\\
+    Row 2    & 7        & 2.71     & 0\\
+    Row 3    & 100      & 1.41     & 0\\
+    \hline
+  \end{tabular}
+  \caption{asdfasdfasdfasdf \cite{jaish2026}}
+  \label{tab:emperical_investigation}
+\end{table}
+
+\centering
+\printbibliography
 
 \end{document}
