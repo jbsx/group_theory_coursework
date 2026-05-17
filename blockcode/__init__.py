@@ -154,6 +154,11 @@ class Block_code:
 
         # weight of valid coset leader must be <= correctable weight
         error_pattern = self.syndrome_table[s]
+
+        print(f"  syndrome: {s}")
+        print(f"  coset leader in table: {bin(error_pattern)}, weight: {weight(error_pattern)}")
+        print(f"  max_correctable: {self.max_correctable}")
+
         if weight(self.syndrome_table[s]) > self.max_correctable:
             raise ValueError(f"Too many errors detected. Errors:{weight(error_pattern)}")
 
@@ -174,28 +179,17 @@ def mod_two(w: np.ndarray):
         w[idx] %= 2
     return w
 
-def send(codeword: int, n: int, errors: int) -> int:
+def send(codeword: int, n: int, errors: int) -> tuple[int, int, List[int]]:
     if errors == 0:
-        return codeword
+        return (codeword, 0, [])
 
     #Generate random error pattern -> XOR with codeword
     error_positions = random.sample(range(n), errors)
     error_pattern = sum(1 << (n - 1 - pos) for pos in error_positions)
     received = codeword ^ error_pattern
-    return received
+    return (received, error_pattern, error_positions)
 
-def binary(x: int) -> List[int]:
-    return [int(x >> (4 - 1 - i)) & 1 for i in range(4)]
+def binary(x: int, n: int) -> List[int]:
+    return [int(x >> (n - 1 - i)) & 1 for i in range(n)]
 
-# TEST
-b = Block_code([0, 22, 13, 27])
-
-for _ in range(10000):
-    for msg in range(1 << b.k):
-        codeword = b.encode(msg)
-        received = send(codeword, b.n, random.randint(0, b.max_detectable - 1))
-        corrected = b.correct(received)
-        decoded = b.decode(corrected)
-        assert msg == decoded
-        #if msg != decoded:
-        #    print(f" Message: {binary(msg)},\n Codeword:{binary(codeword)},\n Received:{binary(received)},\n Corrected: {binary(corrected)},\n Decoded: {binary(decoded)}\n")
+__all__ = ['Block_code', 'weight', 'mod_two', 'send', 'binary']
