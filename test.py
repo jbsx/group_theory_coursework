@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Test file for the blockcode library."""
 
 import random
 from blockcode import Block_code, weight, send, binary
@@ -110,18 +109,18 @@ def main():
     print("=" * 50)
     
     try:
-        #test_basic_functionality()
-        #test_encoding_decoding()
-        #test_helper_functions()
+        test_basic_functionality()
+        test_encoding_decoding()
+        test_helper_functions()
         test_edge_cases()
-        #success = test_error_correction()
+        success = test_error_correction()
         
-        #print("\n" + "=" * 50)
-        #if success:
-        #    print("ALL TESTS PASSED ✓")
-        #else:
-        #    print("SOME TESTS FAILED ✗")
-        #print("=" * 50)
+        print("\n" + "=" * 50)
+        if success:
+            print("ALL TESTS PASSED ✓")
+        else:
+            print("SOME TESTS FAILED ✗")
+        print("=" * 50)
         
     except Exception as e:
         print(f"\n✗ TEST SUITE FAILED: {e}")

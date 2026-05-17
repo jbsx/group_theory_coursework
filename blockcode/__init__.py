@@ -154,11 +154,6 @@ class Block_code:
 
         # weight of valid coset leader must be <= correctable weight
         error_pattern = self.syndrome_table[s]
-
-        print(f"  syndrome: {s}")
-        print(f"  coset leader in table: {bin(error_pattern)}, weight: {weight(error_pattern)}")
-        print(f"  max_correctable: {self.max_correctable}")
-
         if weight(self.syndrome_table[s]) > self.max_correctable:
             raise ValueError(f"Too many errors detected. Errors:{weight(error_pattern)}")
 
