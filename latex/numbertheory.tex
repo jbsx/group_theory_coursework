@@ -276,27 +276,27 @@ code requires optimising construction, not just increasing redundancy.
     \centering
     \noindent
     \includegraphics[width=\linewidth]{dmin_vs_rate.png}
-    \caption{\(d_\text{min}\) vs Code Rate for varying block codes}
+    \caption{\(d_\text{min}\) vs Code Rate for varying block codes [\autoref{tab:emperical_investigation}]}
     \label{fig:d_min_vs_Rate}
 \end{figure}
 
 Figure 2 confirms the fundamental antagonism between code rate R = k/n and error-correction strength: as R increases,
-the achievable \(d_\text{min}\) falls, consistent with the Plotkin and Singleton bounds. The negative trend is clear,
-but the scatter around it again shows that rate alone does not fix \(d_\text{min}\), code construction remains decisive.
+the achievable \(d_\text{min}\) falls, consistent with the Singleton bound. The negative trend is clear, but the 
+scatter around it again shows that rate alone does not fix \(d_\text{min}\), code construction remains decisive.
 The (12,4) code is a notable outlier, achieving \(d_\text{min} = 6\) at \(R \approx 0.33\), well above comparable code
 rates, illustrating how longer block lengths can extract greater distance at the same rate. At the high-rate end, the 
-(15,11) Hamming code stands out for sustaining \(d_\text{min}=3\) at \(R \approx 0.73\), a region where most codes are 
+(15,11) Hamming code stands out for sustaining \(d_\text{min} = 3\) at \(R \approx 0.73\), a region where most codes are 
 limited to \(d_\text{min} = 2\). A pronounced floor at \(d_\text{min} = 2\) emerges for \(R \ge 0.6\), suggesting that 
 beyond this efficiency threshold, further gains in rate come essentially for free in terms of error-correction 
 degradation, the capability is already at its practical minimum. The widest vertical spread occurs at low rates, 
-indicating that low-rate codes offer the greatest design latitude, while high-rate codes converge tightly toward the 
+indicating that low-rate codes offer the greatest design flexibility, while high-rate codes converge toward the 
 minimum distance floor.
 
 \begin{figure}[ht]
     \centering
     \noindent
     \includegraphics[width=\linewidth]{dmin_vs_n_fixed_k.png}
-    \caption{\(d_\text{min}\) vs n for fixed k}
+    \caption{\(d_\text{min}\) vs n for fixed k [\autoref{tab:fixed_k}]}
     \label{fig:d_min_vs_n}
 \end{figure}
 
