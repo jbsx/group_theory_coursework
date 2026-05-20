@@ -5,9 +5,9 @@ import random
 import math
 
 class Block_code:
-    def __init__(self, c: List[int]) -> None:
+    def __init__(self, c: List[int], n: int) -> None:
         self.c = np.array(c)
-        self.n = max(x.bit_length() for x in c)
+        self.n = n
         self.k = int(math.log2(len(c)))
         self.d_min = min((weight(int(w)) for w in self.c if int(w) != 0), default=1)
         self.max_detectable = self.d_min - 1

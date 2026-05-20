@@ -2,9 +2,21 @@
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath, amssymb}
 \usepackage[style=numeric, backend=biber]{biblatex}
-\addbibresource{references.bib}  % your .bib file
+\usepackage{graphicx}
+\usepackage[breaklinks=true]{hyperref}
+\addbibresource{references.bib}
 
 \usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+\DeclareFieldFormat{urldate}{
+    (accessed on \thefield{urlday}/\thefield{urlmonth}/\thefield{urlyear})
+}
+\hypersetup{
+    colorlinks=true,
+    pdfborder={0 0 0},
+    linkcolor=blue,   % internal links
+    citecolor=magenta,  % citations
+    urlcolor=blue     % URLs
+}
 
 \title{Number and Group Theory\\\textbf{TC50331E}\\Algebraic Coding Theory}
 \author{Jaish Singh\\33139652}
@@ -235,27 +247,141 @@ each single-bit error vector is the coset leader of a distinct coset, guaranteed
 columns of \(H\) are distinct and non-zero, we can recover \(\hat{e}\) directly from the syndrome, making
 the lookup into our precomputed coset table trivial.
 
+%-----------------------------  3 (b) -----------------------------
 \section{Emperical Investigation}
-We systematically vary n and k for a block code to observe the followig: 
-To effieciently utilize block codes for transmission, we must have optimal values n and k such that we
-maximise error-control capabilities whilst minimizing 
+We systematically vary n and k for a block code to observe changes in \(d_\text{min}\).
+We use \(d_\text{min}\) as a proxy of our block codes utility since both error correction as well as error 
+detection capacity of a block code is derived from \(d_\text{min}\), where larger \(d_\text{min}\) relates to 
+better error-control capabilities.
 
+\begin{figure}[ht]
+    \centering
+    \noindent
+    \includegraphics[width=\linewidth]{dmin_vs_redundancy.png}
+    \caption{\(d_\text{min}\) vs Redundancy for varying block codes}
+    \label{fig:d_min_vs_Redundancy}
+\end{figure}
+
+The scatter plot confirms a clear positive trend between redundancy \(r = n - k\) and \(d_\text{min}\): as more 
+redundant bits are added, higher minimum distances become achievable, consistent with the Singleton bound. However,
+the significant vertical spread at each value of r suggests that redundancy is a necessary but not sufficient 
+condition for large \(d_\text{min}\), the specific code construction is equally important. For example, at r = 4,
+\(d_\text{min}\) ranges from 2 for the (10,6) code to 4 for the (6,2) code. The (15,11) Hamming code is a notable 
+point of interest: it achieves \(d_\text{min}\) = 3 at r = 4 while encoding 11 information bits, highlighting that
+well-structured codes can maintain useful error-correction capability without sacrificing information rate. The 
+dashed trend line captures the general relationship, but the scatter around it emphasizes that choosing a block 
+code requires optimising construction, not just increasing redundancy.
+
+\begin{figure}[ht]
+    \centering
+    \noindent
+    \includegraphics[width=\linewidth]{dmin_vs_rate.png}
+    \caption{\(d_\text{min}\) vs Code Rate for varying block codes}
+    \label{fig:d_min_vs_Rate}
+\end{figure}
+
+Figure 2 confirms the fundamental antagonism between code rate R = k/n and error-correction strength: as R increases,
+the achievable \(d_\text{min}\) falls, consistent with the Plotkin and Singleton bounds. The negative trend is clear,
+but the scatter around it again shows that rate alone does not fix \(d_\text{min}\), code construction remains decisive.
+The (12,4) code is a notable outlier, achieving \(d_\text{min} = 6\) at \(R \approx 0.33\), well above comparable code
+rates, illustrating how longer block lengths can extract greater distance at the same rate. At the high-rate end, the 
+(15,11) Hamming code stands out for sustaining \(d_\text{min}=3\) at \(R \approx 0.73\), a region where most codes are 
+limited to \(d_\text{min} = 2\). A pronounced floor at \(d_\text{min} = 2\) emerges for \(R \ge 0.6\), suggesting that 
+beyond this efficiency threshold, further gains in rate come essentially for free in terms of error-correction 
+degradation, the capability is already at its practical minimum. The widest vertical spread occurs at low rates, 
+indicating that low-rate codes offer the greatest design latitude, while high-rate codes converge tightly toward the 
+minimum distance floor.
+
+\begin{figure}[ht]
+    \centering
+    \noindent
+    \includegraphics[width=\linewidth]{dmin_vs_n_fixed_k.png}
+    \caption{\(d_\text{min}\) vs n for fixed k}
+    \label{fig:d_min_vs_n}
+\end{figure}
+
+With k fixed at 3, increasing the block length n is equivalent to adding redundancy while holding information bits 
+constant, and Figure 3 shows that this reliably grows \(d_\text{min}\), but not linearly. The progression is distinctly
+step-wise, \(d_\text{min}\) increases' are separated by flat plateaus, reflecting the discrete geometry of Hamming space 
+rather than a continuous trade-off. The most notable plateau spans \(n = 7\) to \(n = 11\), where five codes share 
+\(d_\text{min} = 4\) even as the code rate falls from \(R = 0.43\) to \(R = 0.27\), four extra redundant bits that 
+deliver no improvement in error-correction capability. The breakout at \(n = 12\) highlights that distance gains are 
+unlocked only at specific thresholds, making naive redundancy addition an inefficient design strategy.
+
+Figures 1-3 gives a coherent and practically important picture of block code design. Figure 1 establishes that 
+redundancy is a prerequisite for large \(d_\text{min}\), but construction quality determines how efficiently that 
+redundancy is converted. Figure 2 reframes the same trade-off through code rate, revealing a \(d_\text{min}\)
+floor at high rates and the greatest design freedom at low rates. Figure 3 isolates block length, even with k fixed,
+increases in \(d_\text{min}\) are not proportional to added redundancy, they arrive in discrete steps, with long 
+plateaus where extra bits are effectively wasted. Across all three perspectives, the conclusion is the same, parameter 
+choices set the ceiling on achievable \(d_\text{min}\), but it is the algebraic structure of the code that determines 
+whether that ceiling is approached. Efficient block code design is therefore not just a matter of allocating more 
+bits to redundancy, but of constructing codes whose geometry exploits every redundant bit to maximally separate 
+codewords.
+
+\newpage
+\centering
+\printbibliography
+
+\appendix
+\section{Appendix}
 \begin{table}[ht]
   \centering
-  \begin{tabular}{cccc}
+  \begin{tabular}{ccccc}
     \hline
-    n & k & \(d_\text{min}\) & code rate \\
+    \(n\)  &  \(k\)  &  Redundancy \((n - k)\)  & code rate \((k/n)\) & \(d_\text{min}\)\\
     \hline
-    Row 1    & 42       & 3.14     & 0\\
-    Row 2    & 7        & 2.71     & 0\\
-    Row 3    & 100      & 1.41     & 0\\
+         5  &   2  &  3  &  0.40  &  3 \\
+         5  &   3  &  2  &  0.60  &  2 \\
+         6  &   2  &  4  &  0.33  &  4 \\
+         6  &   3  &  3  &  0.50  &  3 \\
+         6  &   4  &  2  &  0.67  &  2 \\
+         7  &   2  &  5  &  0.29  &  4 \\
+         7  &   4  &  3  &  0.57  &  3 \\
+         7  &   5  &  2  &  0.71  &  2 \\
+         8  &   2  &  6  &  0.25  &  5 \\
+         8  &   4  &  4  &  0.50  &  4 \\
+         8  &   5  &  3  &  0.63  &  2 \\
+         8  &   6  &  2  &  0.75  &  2 \\
+         9  &   2  &  7  &  0.22  &  6 \\
+         9  &   4  &  5  &  0.44  &  4 \\
+         9  &   5  &  4  &  0.56  &  3 \\
+        10  &   2  &  8  &  0.20  &  6 \\
+        10  &   4  &  6  &  0.40  &  4 \\
+        10  &   6  &  4  &  0.60  &  2 \\
+        10  &   8  &  2  &  0.80  &  2 \\
+        12  &   4  &  8  &  0.33  &  6 \\
+        12  &   6  &  6  &  0.50  &  3 \\
+        12  &   9  &  3  &  0.75  &  2 \\
+        15  &  11  &  4  &  0.73  &  3 \\
     \hline
   \end{tabular}
-  \caption{asdfasdfasdfasdf \cite{jaish2026}}
+  \caption{\(d_\text{min}\) for block codes of varying n and k \cite{jaish2026}}
   \label{tab:emperical_investigation}
 \end{table}
 
-\centering
-\printbibliography
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{ccccc}
+    \hline
+    \(n\)  &  \(k\)  &  Redundancy \((n - k)\)  & code rate \((k/n)\) & \(d_\text{min}\)\\
+    \hline
+         4  &  3  &   1  &  0.75  &  2 \\
+         5  &  3  &   2  &  0.60  &  2 \\
+         6  &  3  &   3  &  0.50  &  3 \\
+         7  &  3  &   4  &  0.43  &  4 \\
+         8  &  3  &   5  &  0.38  &  4 \\
+         9  &  3  &   6  &  0.33  &  4 \\
+        10  &  3  &   7  &  0.30  &  4 \\
+        11  &  3  &   8  &  0.27  &  4 \\
+        12  &  3  &   9  &  0.25  &  5 \\
+        13  &  3  &  10  &  0.23  &  6 \\
+        14  &  3  &  11  &  0.21  &  7 \\
+        15  &  3  &  12  &  0.20  &  7 \\
+    \hline
+  \end{tabular}
+  \caption{\(d_\text{min}\) for fixed \(k = 3\) and varying \(n\) \cite{jaish2026}}
+  \label{tab:fixed_k}
+\end{table}
 
 \end{document}
