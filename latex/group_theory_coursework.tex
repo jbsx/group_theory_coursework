@@ -26,35 +26,44 @@
 \maketitle
 \setlength{\parskip}{0.5cm}
 
+Every time data travels across a network: a file download, a message sent, there is a chance that some 
+bits will flip. The challenge of reliable communication is therefore not just one of engineering, but 
+of mathematics: how do we design systems that can detect and correct errors automatically, without 
+knowing in advance where they will occur? Algebraic coding theory answers this question by imposing 
+carefully chosen mathematical structure on transmitted data. This report develops the theory of binary 
+block codes, showing how group theory provides the natural language for describing codewords, measuring 
+distances between them, and building efficient error-correction schemes.
+
 \section{Block Codes}
 
 %-----------------------------  1 (a)  -----------------------------
-Let \( \mathbf{B}(n)=\mathbb{Z}_2^n \), the set of all binary strings of length n. That is,
+Let \(\mathbf{B}(n) = \underbrace{\mathbb{Z}_2 \times \mathbb{Z}_2 \times \cdots \times 
+\mathbb{Z}_2}_{n \text{ copies}}\), the set of all binary strings of length \(n\). That is,
 \[
     \mathbf{B}(n) = \{ (x_1, \dots, x_n) \mid x_i \in \mathbb{Z}_2 \text { for }
   1 \le i \le n \}.
 \]
 with a binary component-wise addition modulo 2: 
-\( (x_1, \dots, x_n) \oplus (y_1, \dots, y_n) = (x_1 + y_1, \dots, x_n + y_n), \)
+\[ (x_1, \dots, x_n) + (y_1, \dots, y_n) = (x_1 + y_1, \dots, x_n + y_n)\]
 where addition is taken in $\mathbb{Z}_2$. This operation is well-defined 
 since \( \mathbb{Z}_2 \) is closed under addition. We verify the group axioms 
-for \((\mathbf{B}(n), \oplus )\):
+for \((\mathbf{B}(n), + )\):
 \begin{enumerate}
-    \item \textit{Closure: } Let \( x, y \in \mathbf{B}(n) \). Then \( x \oplus y \in \mathbf{B}(n) \) 
+    \item \textit{Closure: } Let \( x, y \in \mathbf{B}(n) \). Then \( x + y \in \mathbf{B}(n) \) 
         since addition in \( \mathbb{Z}_2 \) is closed.
 
     \item \textit{Associativity: } For all \( x, y, z \in \mathbf{B}(n) \), we have
-    \[ (x \oplus y) \oplus z = x \oplus (y \oplus z), \] since addition in
+    \[ (x + y) + z = x + (y + z), \] since addition in
     \( \mathbb{Z}_2 \) is associative.
 
 \item \textit{Identity: } The element \( 0 = (0, \dots, 0) \in \mathbf{B}(n) \) satisfies 
-    \( x \oplus 0 = x \) for all \( x \in \mathbf{B}(n) \).
+    \( x + 0 = x \) for all \( x \in \mathbf{B}(n) \).
 
-\item \textit{Inverses: } For each \( x \in \mathbf{B}(n) \), we have \( x \oplus x = 0 \),
-        so every element is its own inverse.
+\item \textit{Inverses: } For each \( x \in \mathbf{B}(n) \), we have \( x + x = 0 \) since 0 + 0 = 0
+    and 1 + 1 = 0, so every element is its own inverse.
 \end{enumerate}
-Having established that \( (\mathbf{B}(n), \oplus) \) is a group, we now observe that it is in
-fact abelian. This follows from the commutativity of addition in \( \mathbb{Z}_2 \), 
+Having established that \( (\mathbf{B}(n), +) \) is a group, we observe that it is in
+fact Abelian. This follows from the commutativity of addition in \( \mathbb{Z}_2 \), 
 applied component-wise. Since digital signals are inherently binary, it is natural to 
 model transmitted data as elements of \(\mathbb{Z}_2 = \{0, 1\}\), the group of integers
 modulo 2 under addition. The group operation, which coincides with XOR, captures parity 
@@ -63,101 +72,109 @@ This structure extends naturally to \(\mathbb{Z}_2^n\), the group of binary stri
 length n, which serves as the space in which code words live. 
 
 %-----------------------------  1 (b)  -----------------------------
-For \(0 < k < n\), we define an (n, k) \textit{block code} to be a subgroup of \textbf{B}(n), such that
-\(\lvert(n, k)\rvert = 2^k\), where elements are binary strings, called \textit{code words}, of 
-length n. Code words are the only strings allowed to be transmitted. Due to channel errors where the 
-bits flip to the opposite state during transmission, it is not always guranteed that the same code word
-is received by the client, so the \textit{received words} are elements of a broader set of all binary 
-strings of length n, \textbf{B}(n). 
+For \(0 < k < n\), we define a \((n, k)\) block code to be a subset of \(\mathbf{B}(n)\), 
+such that the cardinality of \((n, k) = 2^k\), and elements are binary strings, called code words, of 
+length \(n\). We restrict transmission of binary data to only the code words within the prescribed block 
+code. Since bit flips can happen seemingly at random, the code words may get transformed to binary strings 
+outside the block code. Hence, the received words are elements of a broader set of all binary strings of 
+length \(n\), \(\mathbf{B}(n)\). Additionally, if a block code happens to be a subgroup of \(\mathbf{B}(n)\),
+then this is a special type of block code called a Linear Block Code. Linear Block Codes have several
+important qualities that make them more efficient. The implications of this are explored in more depth in the 
+subsequent sections.
 
-Consider \(C = \{(0,0,0,0), (0,1,0,1), (1,0,1,0), (1,1,1,1)\}\). For all \(a, b \in C\),
-\(a - b \in C\), which establishes that C is a subgroup of \textbf{B}(4). More specifically, \(|C| = 2^2\)
-so therefore C is a (4, 2) block code. The received word for C can be any binary string of
-length 4, i.e. any element in \textbf{B}(4) = \{0000, 0001, 0010, 0011, 0100, 0101, 0110, 0111, 1000,
-1001, 1010, 1011, 1100, 1101, 1110, 1111\}.
+For instance, consider a set \(C = \{(0,0,0,0), (0,1,0,1), (1,0,1,0), (1,1,1,1)\}\). \(C\) is a (4, 2) block 
+code since every code word is of length 4 and \(|C| = 4 = 2^2\) corresponding to \(k=2\) information bits. 
+Since transmission may cause errors anywhere in the string, the received words for any element in \(C\) 
+are all binary strings of length 4, i.e. any element in \(\mathbf{B}(4) =\) \{0000, 0001, 0010, 0011, 0100, 
+0101, 0110, 0111, 1000, 1001, 1010, 1011, 1100, 1101, 1110, 1111\}. For all \(a, b \in C\), \(a - b^{-1} \in C\),
+which establishes that \(C\) is a subgroup of \(\mathbf{B}(4)\), therefore \(C\) happens to be a Linear Block Code.
 
 %-----------------------------  1 (c & d)  -----------------------------
 
-To systematically generate code words in a block code, we use a \textit{generator matrix} 
-\parencite{berlekamp1972survey}. A generator matrix for an (n, k) block code C is a \(k \times n\)
-matrix G whose rows form a basis for C, i.e. are linearly independent. For instance, the generator
-matrix G, for a (5, 2) block code \(C = \{(0,0,0,0,0), (1,0,1,1,0), (0,1,1,0,1), (1,1,0,1,1)\}\) is 
-\[G = \begin{bmatrix} 
+A generator matrix for an \((n, k)\) block code \(C\) is a \(k \times n\) matrix \(\mathbf{G}\) whose rows form 
+a basis for \(C\), i.e. are linearly independent. We use a generator matrix \parencite{berlekamp1972survey} to 
+systematically generate code words in a block code. For instance, the generator matrix \(\mathbf{G}\), for a 
+\((5, 2)\) block code \(C = \{(0,0,0,0,0), (1,0,1,1,0), (0,1,1,0,1), (1,1,0,1,1)\}\) is 
+\[\mathbf{G} = \begin{pmatrix} 
     1 & 0 & 1 & 1 & 0 \\
     0 & 1 & 1 & 0 & 1 \\
-\end{bmatrix}\]
-To verify if a received word is a valid code word, we make use of a \((n-k) \times n\) 
-\textit{parity-check matrix}, \(\mathbf{H}\). The valid code words are the null space of the parity-check 
-matrix, i.e., \[HG^T = 0\]
-Similarly, a received word C is a valid code word if it satisfies the equation \( HC^T = 0 \).
-The parity-check matrix, H, for our (5, 2) block code is
+\end{pmatrix}\]
+To verify if a received word is a valid code word, we make use of a \((n-k) \times n\) parity-check matrix,
+\(\mathbf{H}\). The valid code words are the null space of the parity-check matrix, i.e., \[HG^T = 0\]
+Similarly, a received word \(C\) is a valid code word if it satisfies the equation \( HC^T = 0 \).
+The parity-check matrix, \(H\), for our \((5, 2)\) block code is
 
 \[
-H = \begin{bmatrix}
+H = \begin{pmatrix}
 1 & 0 & 0 & 1 & 0 \\
 0 & 1 & 0 & 0 & 1 \\
 0 & 0 & 1 & 1 & 1
-\end{bmatrix}\]
+\end{pmatrix}\]
 
 \[
-HG^T = \begin{bmatrix}
+HG^T = \begin{pmatrix}
 1 & 0 & 0 & 1 & 0 \\
 0 & 1 & 0 & 0 & 1 \\
 0 & 0 & 1 & 1 & 1
-\end{bmatrix}
-\begin{bmatrix}
+\end{pmatrix}
+\begin{pmatrix}
 1 & 0 \\
 0 & 1 \\
 1 & 1 \\
 1 & 0 \\
 0 & 1
-\end{bmatrix}
+\end{pmatrix}
 = 
-\begin{bmatrix}
+\begin{pmatrix}
 0 & 0 \\
 0 & 0 \\
 0 & 0
-\end{bmatrix}
+\end{pmatrix}
 \]
 
 %-----------------------------  1 (e)  -----------------------------
-For a given block code, we must define it's capabilities in terms of error detection and error
+For a given block code, we must define its capabilities in terms of error detection and error
 correction. This capability is defined in terms of the \textit{weight} of a code word in a 
 block code. The weight of a binary string \(b \in \mathbf{B}(n)\), denoted by \(w(b)\), is the count of
 1s in \(b\). For instance, the weight of \((1,0,1,1,0,1,1,0,1,1,0,1) \in \mathbf{B}(12)\) is 8.
 %-----------------------------  1 (f)  -----------------------------
-The \textit{distance} D, between two binary strings, \(x , y \in \mathbf{B}(n)\), is the weight of their 
+The \textit{distance} \(D\), between two binary strings, \(x , y \in \mathbf{B}(n)\), is the weight of their 
 sum in \(\mathbb{Z}_2\), i.e., 
-\[D(x, y) = w(x \oplus y)\]
+\[D(x, y) = w(x + y)\]
 In other words, the distance is the number of positions where the two strings differ.
-The distance defines a metric \cite{hamming1950error} on \textbf{B}(n). Formally, a metric defined on a set 
-is a function such that it follows
-\begin{itemize}
-\item Non-degeneracy: \(d(x, y) = 0 \iff x = y\)
+The distance defines a metric \cite{hamming1950error} on \(\mathbf{B}(n)\). Formally, a metric defined on a 
+set is a function such that it follows
+\begin{enumerate}
+\item Definiteness: \(d(x, y) = 0 \iff x = y\)
 \item Symmetry: \(d(x, y) = d(y, x)\)
 \item Triangle inequality: \(d(x, z) \leq d(x, y) + d(y, z)\)
-\end{itemize}
+\end{enumerate}
 It is straightforward to verify that \(D\) satisfies each of these.
-\begin{itemize}
-    \item Non-degeneracy: \(D(x,y) = w(x \oplus y) = 0\) if and only if \(x \oplus y = 0\), which holds 
+\begin{enumerate}
+    \item Definiteness: \(D(x,y) = w(x + y) = 0\) if and only if \(x + y = 0\), which holds 
         if and only if \(x_i = y_i\) for all \(i\), i.e. \(x = y\).
 
-    \item Symmetry: \(D(x,y) = w(x \oplus y) = w(y \oplus x) = D(y,x)\), since \(x_i \oplus y_i = y_i 
-        \oplus x_i\) for each bit.
+    \item Symmetry: \(D(x,y) = w(x + y) = w(y + x) = D(y,x)\), since \(x_i + y_i = y_i 
+        + x_i\) for each bit.
 
-    \item Triangle inequality: For any \(x, y, z \in \mathbf{B}(n)\), note that \(x \oplus z = (x \oplus y)
-        \oplus (y \oplus z)\), so
+    \item Triangle inequality: For any \(x, y, z \in \mathbf{B}(n)\), note that
         \begin{align*}
-            D(x,z) &= w(x\oplus z) \\
-                   &= w\bigl((x\oplus y)\oplus(y\oplus z)\bigr) \leq w(x\oplus y) + w(y\oplus z) \\
+            (x + z) &= x + 0 + z \\
+                    &= x + (y + y) + z \\
+                    &= (x + y) + (y + z) \\
+        \end{align*}
+        so,
+        \begin{align*}
+            D(x,z) &= w(x+ z) \\
+                   &= w\bigl((x + y)+(y + z)\bigr) \leq w(x + y) + w(y + z) \\
                    &= D(x,y)+D(y,z) \\
         \end{align*}
-        where the inequality uses subadditivity of weight. To see subadditivity holds, observe that
-        \((a \oplus b)_i = 1\) only if \(a_i = 1\) or \(b_i = 1\), so every bit counted 
-        in \(w(a\oplus b)\) is counted in \(w(a)+w(b)\).
-\end{itemize}
-This metric structure underlies the error-correcting power of block codes, which we explore further
-in the following section.
+        %where the inequality uses subadditivity of weight. To see subadditivity holds, observe that
+        %\((a + b)_i = 1\) only if \(a_i = 1\) or \(b_i = 1\), so every bit counted 
+        %in \(w(a+ b)\) is counted in \(w(a)+w(b)\).
+\end{enumerate}
+This metric structure carries directly into the analysis of block codes, where distance between codewords
+becomes the central quantity of interest.
 
 \section{Decoding and Errors}
 %-----------------------------  2 (a)  -----------------------------
@@ -165,76 +182,79 @@ Let \(C\) be a code word to be transmitted, whilst \(R\) is its received counter
 transmission is measured by the distance between the sent binary string and the received 
 string, \(D(C, R)\). These errors change the message seemingly at random coordinates, and therefore,
 there is a non zero chance for the received message to have been transformed to another valid code 
-word. Let \(d_\text{min}\) be the smallest distance between any two valid code words in a block code,
-then the decoder can detect upto \(d_\text{min} - 1\) errors without coinciding with another code word.
-If R is detected to have errors, it may be possible to error correct the message. We simply do this by
-taking the nearest valid code word to R as the intended message. 
+word. Let \(d_\text{min}\) be the smallest distance between any two valid code words in a block code.
+If \(C\) is corrupted by \(e\) errors, \(R\) lies at a distance e from \(C\). Provided \(e < d_\text{min}\),
+the received word cannot coincide with any other valid codeword. Therefore the decoder can detect upto 
+\(d_\text{min} - 1\) errors without coinciding with another code word. If \(R\) is detected to have errors,
+it may be possible to error correct the message. We simply do this by taking the nearest valid code word to 
+\(R\) as the intended message. 
 
 If there is more than one nearest valid code word, the decoder cannot correct the message. 
-Therefore, for there to be a unique valid code word for R, R must not be equidistant to two code 
-words. Conversely, R must be at most \(\lfloor\frac{d_\text{min} - 1}{2}\rfloor\) from a valid code word.
-Therefore, a code with minimum distance \(d_\text{min}\) can correct at most 
-\(\lfloor\frac{d_\text{min} - 1}{2}\rfloor\) errors, since any R within that radius is guaranteed to be 
-closer to exactly one valid code word than any other. In other words, \(d_\text{min} \geq 2t + 1\)
-\cite{bose1960class}, where \(t\) is the number of errors the block code can correct.
+Therefore, for there to be a unique valid code word for \(R\), \(R\) must not be equidistant to two code 
+words. Conversely, \(R\) must be at most \(\lfloor\frac{d_\text{min} - 1}{2}\rfloor\) from a valid code word,
+where \(\lfloor \cdot \rfloor\) denotes the floor function, rounding down to the nearest integer. Therefore,
+a code with minimum distance \(d_\text{min}\) can correct at most \(\lfloor\frac{d_\text{min} - 1}{2}\rfloor\)
+errors, since any \(R\) within that radius is guaranteed to be closer to exactly one valid code word than any
+other. In other words, \(d_\text{min} \geq 2t + 1\) \cite{bose1960class}, where \(t\) is the number of errors 
+the block code can correct.
 
 %-----------------------------  2 (b)  -----------------------------
 Let G be a block code described by
 \[
-G = \begin{bmatrix}
+G = \begin{pmatrix}
     1 & 0 & 0 & 1 & 1 & 1 \\
     0 & 1 & 0 & 1 & 0 & 1 \\
     0 & 0 & 1 & 1 & 1 & 0 \\
-\end{bmatrix}
+\end{pmatrix}
 \]
 where the code words for G is defined by the encoding algorithm 
-\begin{gather*}
-\mathbf{C} = \{B\mathbf{G} : B \in \mathbf{B}(3)\} \subset \mathbf{B}(6) \\
-           = \{000000,\ 100111,\ 010101,\ 001110,\ 110010,\ 101001,\ 011011,\ 111100\}
-\end{gather*}
-Since \(\mathbf{C}\) is closed under addition in \(\mathbb{Z}_2\) and contains 000000, we call C to 
-be a linear code. As a result, for any two code words \(C_1, C_2 \in \mathbf{C}\), their sum 
-\(C_1 \oplus C_2 \in \mathbf{C}\), and the distance satisfies \(D(C_1, C_2) = w(C_1 \oplus C_2)\).
+\begin{align*}
+\mathbf{C} &= \{B\mathbf{G} : B \in \mathbf{B}(3)\} \subset \mathbf{B}(6)\} \\
+           &= \{000000,\ 100111,\ 010101,\ 001110,\ 110010,\ 101001,\ 011011,\ 111100\}
+\end{align*}
+Since \(\mathbf{C}\) is closed under addition in \(\mathbb{Z}_2\) and contains 000000, \(\mathbf{C}\) 
+is a group and therefore a Linear Block Code. As a result, for any two code words \(C_1, C_2 \in \mathbf{C}\),
+their sum \(C_1 + C_2 \in \mathbf{C}\), and the distance satisfies \(D(C_1, C_2) = w(C_1 + C_2)\).
 Therefore, the smallest distance between any two valid code words, \(d_\text{min}\) would be the 
-smallest weight of a codeword in C excluding 000000, which by inspection we can deduce to be 3, the 
-weight of 010101. Using \(d_\text{min}\), we can infer that \(\mathbf{G}\) can detect at most 
+smallest weight of a codeword in \(\mathbf{C}\) excluding 000000, which by inspection we deduce to be 3, 
+the weight of 010101. Using \(d_\text{min}\), we infer that \(\mathbf{G}\) can detect at most 
 \(d_\text{min} - 1 = 2\) errors and correct \(\lfloor\frac{d_\text{min} - 1}{2}\rfloor = 1\)
 error.
 
 %-----------------------------  2 (c) -----------------------------
-So far we have defined that the parity-check matrix, \(\mathbf{H}\), detects if an input, \(B \in 
-\mathbf{B}(n)\), is valid or not by \(F: \mathbf{B}(n) \rightarrow \mathbf{B}(n - k)\) given by
+The parity-check matrix, \(\mathbf{H}\), validates any input \(B \in \mathbf{B}(n)\) given by
+\(F: \mathbf{B}(n) \rightarrow \mathbf{B}(n - k)\) such that,
 \[
     F(B) = \mathbf{H}B^t, B \in \mathbf{B}(n)
 \]
 And if an error is detected, we take the nearest valid code word to be the message. However, to search 
 for the nearest valid code word by individually measuring the distance between every possible word 
-would be computationally expensive. To solve this issue, we use the fact that \(F\) is a surjective
-group homomorphism. We know that F is a group homomorphism, since it satisfies the condition
-\(F(a + b) = F(a) + F(b)\), which follows from the linearity of matrix multiplication. We also know that
-\(\mathbf{H}\) has a full row rank \(n - k\) which follows from linear independence of \(\mathbf{G}\). 
-This suggests that the linear map \(F\) can produce any vector in \(\mathbf{B}(n - k)\) and therefore is
-a surjective map. Thus, we can deduce that F is a surjective group homomorphism, which allows us to 
-partition \(\mathbf{B}(n)\) into cosets of the kernel of F.
+would be computationally expensive. To get around this, we use the fact that \(F\) is a surjective
+group homomorphism. Since \(F\) satisfies the condition \(F(a + b) = F(a) + F(b)\) which follows from the 
+linearity of matrix multiplication, \(F\) is a group homomorphism. We also know that \(\mathbf{H}\) has a 
+full row rank \(n - k\) which follows from the rows of \(\mathbf{G}\) being linearly independent. This suggests 
+that the linear map \(F\) can produce any vector in \(\mathbf{B}(n - k)\) and therefore is a surjective map. 
+Thus, we deduce that \(F\) is a surjective group homomorphism, which allows us to partition \(\mathbf{B}(n)\)
+into cosets of the kernel of \(F\).
 \[
 F(B) = HB^t = H(C + e)^t = HC^t + He^t = 0 + He^t = He^t
 \]
-where e is the error in \(B\). We precompute all cosets of the kernel of \(F\) in \(\mathbf{B}(n)\) and 
+where \(e\) is the error in \(B\). We precompute all cosets of the kernel of \(F\) in \(\mathbf{B}(n)\) and 
 find the element with the smallest weight in each coset, called the coset leader, \(\hat{e}\). When 
 decoding, we find the coset in which \(F(B) = He^t\) belongs to in our precomputed set of cosets. Once 
-we have our coset, and subsequently it's corresponding coset leader \(\hat{e}\), finding the closest 
+we have found our coset, and subsequently it's corresponding coset leader \(\hat{e}\), finding the closest 
 code word \(\hat{C}\) becomes trivial
 \[
-    \hat{C} = B - \hat{e}
+    \hat{C} = B + \hat{e}
 \]
 Since \(F\) is a group homomorphism, its kernel \(ker(F) = \{B \in \mathbf{B}(n):\mathbf{H}B^t = 0\}\) is
 a subgroup of \(\mathbf{B}(n)\). Because \(\mathbf{HG}^t\) was defined to be 0, all linear combinations
-of \(\mathbf{G}\), i.e. all valid code words, is the kernel of \(F\).
+of \(\mathbf{G}\), i.e., all valid code words, is the kernel of \(F\).
 
 %-----------------------------  2 (d) -----------------------------
 A natural question to ask at this point is what is the optimal value for \(k\) such that we maximise
 error-control capability whilst minimizing the number of redundant parity bits. This balance is what 
-a \textit{Hamming code} achieves. A Hamming code is a linear block code constructed so that the minimum 
+a Hamming code achieves. A Hamming code is a linear block code constructed so that the minimum 
 distance between any two valid code words is 3, guaranteeing the ability to detect up to 2 errors and 
 correct 1 error. This means the coset leaders are precisely the \(n\) single-bit error vectors together 
 with the zero vector, giving \(n + 1 = 2^m\) cosets partitioning \(\mathbf{B}(n)\).
@@ -242,15 +262,15 @@ with the zero vector, giving \(n + 1 = 2^m\) cosets partitioning \(\mathbf{B}(n)
 For a Hamming code, the parity-check matrix \(H\) is an \(m \times n\) matrix whose columns consist of all 
 \(2^m - 1\) distinct non-zero binary vectors of length \(m\). A received word \(B\) is a valid 
 codeword if and only if \(HB^T = 0\). If a single-bit error occurs at position \(i\), the syndrome \(HB^t\)
-equals precisely the \(i\)-th column of \(H\), which uniquely identifies the coset containing \(B\). Since
-each single-bit error vector is the coset leader of a distinct coset, guaranteed by the fact that all 
+equals precisely the \(i^\text{th}\) column of \(H\), which uniquely identifies the coset containing \(B\).
+Since each single-bit error vector is the coset leader of a distinct coset, guaranteed by the fact that all 
 columns of \(H\) are distinct and non-zero, we can recover \(\hat{e}\) directly from the syndrome, making
 the lookup into our precomputed coset table trivial.
 
 %-----------------------------  3 (b) -----------------------------
-\section{Emperical Investigation}
-We systematically vary n and k for a block code to observe changes in \(d_\text{min}\).
-We use \(d_\text{min}\) as a proxy of our block codes utility since both error correction as well as error 
+\section{Empirical Investigation}
+We systematically vary \(n\) and \(k\) for a block code to observe changes in \(d_\text{min}\).
+We use \(d_\text{min}\) as a proxy for our block codes' utility since both error correction as well as error 
 detection capacity of a block code is derived from \(d_\text{min}\), where larger \(d_\text{min}\) relates to 
 better error-control capabilities.
 
@@ -264,10 +284,10 @@ better error-control capabilities.
 
 The scatter plot confirms a clear positive trend between redundancy \(r = n - k\) and \(d_\text{min}\): as more 
 redundant bits are added, higher minimum distances become achievable, consistent with the Singleton bound. However,
-the significant vertical spread at each value of r suggests that redundancy is a necessary but not sufficient 
-condition for large \(d_\text{min}\), the specific code construction is equally important. For example, at r = 4,
+the significant vertical spread at each value of \(r\) suggests that redundancy is a necessary but not sufficient 
+condition for large \(d_\text{min}\), the specific code construction is equally important. For example, at \(r = 4\),
 \(d_\text{min}\) ranges from 2 for the (10,6) code to 4 for the (6,2) code. The (15,11) Hamming code is a notable 
-point of interest: it achieves \(d_\text{min}\) = 3 at r = 4 while encoding 11 information bits, highlighting that
+point of interest: it achieves \(d_\text{min} = 3\) at \(r = 4\) while encoding 11 information bits, highlighting that
 well-structured codes can maintain useful error-correction capability without sacrificing information rate. The 
 dashed trend line captures the general relationship, but the scatter around it emphasizes that choosing a block 
 code requires optimising construction, not just increasing redundancy.
@@ -280,9 +300,9 @@ code requires optimising construction, not just increasing redundancy.
     \label{fig:d_min_vs_Rate}
 \end{figure}
 
-Figure 2 confirms the fundamental antagonism between code rate R = k/n and error-correction strength: as R increases,
-the achievable \(d_\text{min}\) falls, consistent with the Singleton bound. The negative trend is clear, but the 
-scatter around it again shows that rate alone does not fix \(d_\text{min}\), code construction remains decisive.
+Figure 2 confirms the fundamental antagonism between code rate \(R = k/n\) and error-correction strength: as \(R\) 
+increases, the achievable \(d_\text{min}\) falls, consistent with the Singleton bound. The negative trend is clear,
+but the scatter around it again shows that rate alone does not fix \(d_\text{min}\), code construction remains decisive.
 The (12,4) code is a notable outlier, achieving \(d_\text{min} = 6\) at \(R \approx 0.33\), well above comparable code
 rates, illustrating how longer block lengths can extract greater distance at the same rate. At the high-rate end, the 
 (15,11) Hamming code stands out for sustaining \(d_\text{min} = 3\) at \(R \approx 0.73\), a region where most codes are 
@@ -300,18 +320,18 @@ minimum distance floor.
     \label{fig:d_min_vs_n}
 \end{figure}
 
-With k fixed at 3, increasing the block length n is equivalent to adding redundancy while holding information bits 
-constant, and Figure 3 shows that this reliably grows \(d_\text{min}\), but not linearly. The progression is distinctly
-step-wise, \(d_\text{min}\) increases' are separated by flat plateaus, reflecting the discrete geometry of Hamming space 
-rather than a continuous trade-off. The most notable plateau spans \(n = 7\) to \(n = 11\), where five codes share 
-\(d_\text{min} = 4\) even as the code rate falls from \(R = 0.43\) to \(R = 0.27\), four extra redundant bits that 
-deliver no improvement in error-correction capability. The breakout at \(n = 12\) highlights that distance gains are 
-unlocked only at specific thresholds, making naive redundancy addition an inefficient design strategy.
+With \(k\) fixed at 3, increasing the block length \(n\) is equivalent to adding redundancy while holding information 
+bits constant, and Figure 3 shows that this reliably grows \(d_\text{min}\), but not linearly. The progression is 
+distinctly step-wise, \(d_\text{min}\) increases are separated by flat plateaus, reflecting the discrete geometry of 
+Hamming space rather than a continuous trade-off. The most notable plateau spans \(n = 7\) to \(n = 11\), where five 
+codes share \(d_\text{min} = 4\) even as the code rate falls from \(R = 0.43\) to \(R = 0.27\), four extra redundant 
+bits that deliver no improvement in error-correction capability. The breakout at \(n = 12\) highlights that distance 
+gains are unlocked only at specific thresholds, making naive redundancy addition an inefficient design strategy.
 
 Figures 1-3 gives a coherent and practically important picture of block code design. Figure 1 establishes that 
 redundancy is a prerequisite for large \(d_\text{min}\), but construction quality determines how efficiently that 
 redundancy is converted. Figure 2 reframes the same trade-off through code rate, revealing a \(d_\text{min}\)
-floor at high rates and the greatest design freedom at low rates. Figure 3 isolates block length, even with k fixed,
+floor at high rates and the greatest design freedom at low rates. Figure 3 isolates block length, even with \(k\) fixed,
 increases in \(d_\text{min}\) are not proportional to added redundancy, they arrive in discrete steps, with long 
 plateaus where extra bits are effectively wasted. Across all three perspectives, the conclusion is the same, parameter 
 choices set the ceiling on achievable \(d_\text{min}\), but it is the algebraic structure of the code that determines 
